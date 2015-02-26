@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<vdb name="Customer360" version="1">
+
+    <description>Blending Salesforce</description>
+
+    <!-- 
+      Setting to use connector supplied metadata. Can be "true" or "cached".  
+      "true" will obtain metadata once for every launch of Teiid. 
+      "cached" will save a file containing the metadata into 
+      the deploy/<vdb name>/<vdb version/META-INF directory
+    -->
+    <property name="UseConnectorMetadata" value="cached" />
+
+    <!--
+   Each model represents a access to one or more sources.
+   The name of the model will be used as a top level schema name
+   for all of the metadata imported from the connector.
+
+   NOTE: Multiple models, with different import settings, can be bound to
+   the same connector binding and will be treated as the same source at
+   runtime.
+    -->
+    
+    <model name="CRM">
+        <!-- 
+          JDBC Import settings 
+          
+          importer.useFullSchemaName directs the importer to drop the source 
+          schema from the Teiid object name, so that the Teiid fully qualified name
+          will be in the form of <model name>.<table name>
+        -->
+        <property name="importer.useFullSchemaName" value="false"/>
+
+      
+        <source name="salesforce-source" translator-name="translator-d2c" connection-jndi-name="java:/sfdc-ds"/>
+    </model>
+
+    <model name="Customer" type="VIRTUAL">
+        <metadata type="DDL"><![CDATA[
+	CREATE view CustomerView
+		(
+            Name string,
+            Title string,
+            Company string,
+            Country string,
+            Zip string,
+            Industry string,
+            Ticker string,
+            Status string
+ 		) OPTIONS (MATERIALIZED 'TRUE', UPDATABLE 'TRUE',
+               "teiid_rel:MATVIEW_TTL" 120000,
+               "teiid_rel:MATVIEW_SHARE_SCOPE" 'NONE',
+               "teiid_rel:MATVIEW_ONERROR_ACTION" 'THROW_EXCEPTION')
+ 		AS SELECT Contact.SYS_NAME, Contact.TITLE, Account.SYS_NAME, Account.BILLINGCOUNTRY, Account.BILLINGPOSTALCODE, Account.INDUSTRY, Account.TICKERSYMBOL, Contact.CONTACT_STATUS
+        FROM CRM.Contact as Contact
+        INNER JOIN CRM.Account as Account ON Contact.ACCOUNTID=Account.ROWID
+        WHERE
+            Contact.TITLE IS NOT NULL
+            AND Account.TICKERSYMBOL IS NOT NULL
+            AND Account.billingcountry='USA'
+]]>
+        </metadata>
+    </model>
+
+</vdb>

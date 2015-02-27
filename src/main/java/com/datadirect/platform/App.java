@@ -2,21 +2,16 @@ package com.datadirect.platform;
 
 
 import com.ddtek.jdbcx.ddcloud.DDCloudDataSource;
-import com.ddtek.jdbcx.ddcloud.DDCloudDataSource40;
-import com.ddtek.pool.PooledConnectionDataSource;
+import org.teiid.logging.LogManager;
 import org.teiid.runtime.EmbeddedConfiguration;
 import org.teiid.runtime.EmbeddedServer;
 import org.teiid.translator.jdbc.JDBCExecutionFactory;
 
-import javax.sql.ConnectionPoolDataSource;
 import javax.sql.DataSource;
-import javax.sql.PooledConnection;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.PrintWriter;
-import java.sql.*;
-import java.util.Properties;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,18 +35,26 @@ public class App {
         
         Connection conn = server.getDriver().connect("jdbc:teiid:Customer360", null);
         queryModel(conn);
-        queryModel(conn);
-        queryModel(conn);
         conn.close();
         server.stop();
     }
 
     private static void queryModel(Connection conn) throws SQLException {
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("select * from CustomerView limit 100");
+        ResultSet rs = stmt.executeQuery("select * from CustomerView limit 1000");
+        System.out.println("*************************");
+        System.out.println("Name, Title, Company, Country, Zip, Industry, Ticker, Status");
         while(rs.next())
         {
-            System.out.print("*");
+            StringBuffer buff = new StringBuffer(rs.getString("Name")).append(", ");
+            buff.append(rs.getString("Title")).append(", ");
+            buff.append(rs.getString("Company")).append(", ");
+            buff.append(rs.getString("Country")).append(", ");
+            buff.append(rs.getString("Zip")).append(", ");
+            buff.append(rs.getString("Industry")).append(", ");
+            buff.append(rs.getString("Ticker")).append(", ");
+            buff.append(rs.getString("Status"));
+            System.out.println(buff.toString());
         }
         stmt.close();
     }

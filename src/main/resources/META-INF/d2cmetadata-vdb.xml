@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<vdb name="D2CMetadata" version="1">
+
+    <description>Get the datasources from D2C</description>
+
+    <!-- 
+      Setting to use connector supplied metadata. Can be "true" or "cached".  
+      "true" will obtain metadata once for every launch of Teiid. 
+      "cached" will save a file containing the metadata into 
+      the deploy/<vdb name>/<vdb version/META-INF directory
+    -->
+    <property name="UseConnectorMetadata" value="true"/>
+
+    <model name="MetadataSource">
+        <source name="webservice" translator-name="translator-rest"
+                connection-jndi-name="java:/MetadataRESTWebSvcSource"/>
+    </model>
+
+    <model name="Datasources" type="VIRTUAL">
+        <metadata type="DDL"><![CDATA[
+            
+            CREATE  VIEW DatastoresView (id varchar(5), type varchar(128))
+            AS
+            SELECT
+		        T.id, T.name
+	        FROM
+		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datastores', 'TRUE')) AS f, XMLTABLE('/holder/dataStores' PASSING JSONTOXML('holder', f.result) COLUMNS id string PATH 'id/text()', name string PATH 'name/text()')as T;
+		    
+		    CREATE  VIEW DatasourcesView (id varchar(5), name varchar(128), datastoreid varchar(5))
+		    AS
+		    SELECT
+		        T.id, T.name, T.datastoreid
+	        FROM
+		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datasources', 'TRUE')) AS f, XMLTABLE('/holder/dataSources' PASSING JSONTOXML('holder', f.result) COLUMNS id string PATH 'id/text()', name string PATH 'name/text()', datastoreid string PATH 'dataStore/text()')as T;
+		    
+		    CREATE  VIEW DatasourcesMetadata (id varchar(5), name varchar(128), type varchar(128))
+		    AS
+		    SELECT
+		        DatasourcesView.id, DatasourcesView.name, DatastoresView.Type
+	        FROM DatasourcesView, DatastoresView
+		    where DatasourcesView.datastoreid = DatastoresView.id;
+        ]]>
+        </metadata>
+    </model>
+
+</vdb>

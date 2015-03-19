@@ -9,7 +9,7 @@
       "cached" will save a file containing the metadata into 
       the deploy/<vdb name>/<vdb version/META-INF directory
     -->
-    <property name="UseConnectorMetadata" value="cached" />
+    <property name="UseConnectorMetadata" value="true"/>
 
     <!--
    Each model represents a access to one or more sources.
@@ -35,6 +35,20 @@
         <source name="salesforce-source" translator-name="translator-d2c" connection-jndi-name="java:/sfdc-ds"/>
     </model>
 
+    <model name="EDW">
+        <!--
+          JDBC Import settings
+
+          importer.useFullSchemaName directs the importer to drop the source
+          schema from the Teiid object name, so that the Teiid fully qualified name
+          will be in the form of <model name>.<table name>
+        -->
+        <property name="importer.useFullSchemaName" value="true"/>
+
+
+        <source name="edw-source" translator-name="translator-postgresql" connection-jndi-name="java:/edw-ds"/>
+    </model>
+
     <model name="Customer" type="VIRTUAL">
         <metadata type="DDL"><![CDATA[
 	CREATE view CustomerView
@@ -42,6 +56,7 @@
             Name string,
             Title string,
             Company string,
+            CompanyNo string,
             Country string,
             Zip string,
             Industry string,
@@ -51,7 +66,7 @@
                "teiid_rel:MATVIEW_TTL" 120000,
                "teiid_rel:MATVIEW_SHARE_SCOPE" 'NONE',
                "teiid_rel:MATVIEW_ONERROR_ACTION" 'THROW_EXCEPTION')
- 		AS SELECT Contact.SYS_NAME, Contact.TITLE, Account.SYS_NAME, Account.BILLINGCOUNTRY, Account.BILLINGPOSTALCODE, Account.INDUSTRY, Account.TICKERSYMBOL, Contact.CONTACT_STATUS
+ 		AS SELECT Contact.SYS_NAME, Contact.TITLE, Account.MASTER_CUSTOMER_NAME, Account.CUSTOMER_NUMBER, Account.BILLINGCOUNTRY, Account.BILLINGPOSTALCODE, Account.INDUSTRY, Account.TICKERSYMBOL, Contact.CONTACT_STATUS
         FROM CRM.Contact as Contact
         INNER JOIN CRM.Account as Account ON Contact.ACCOUNTID=Account.ROWID
         WHERE

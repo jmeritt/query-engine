@@ -9,6 +9,7 @@ SELECT
     Account.BILLINGPOSTALCODE,
     Account.INDUSTRY,
     Account.TICKERSYMBOL,
+    Account.Customer_Number,
     Contact.CONTACT_STATUS
 FROM
     Contact

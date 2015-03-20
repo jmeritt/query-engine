@@ -20,25 +20,23 @@
         <metadata type="DDL"><![CDATA[
             
             CREATE  VIEW DatastoresView (id varchar(5), type varchar(128))
-            AS
-            SELECT
-		        T.id, T.name
+            OPTIONS (MATERIALIZED 'TRUE', UPDATABLE 'FALSE',
+               "teiid_rel:MATVIEW_TTL" 1200000,
+               "teiid_rel:MATVIEW_SHARE_SCOPE" 'NONE',
+               "teiid_rel:MATVIEW_ONERROR_ACTION" 'THROW_EXCEPTION')
+            AS SELECT T.id, T.name
 	        FROM
-		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datastores', 'TRUE')) AS f, XMLTABLE('/holder/dataStores' PASSING JSONTOXML('holder', f.result) COLUMNS id string PATH 'id/text()', name string PATH 'name/text()')as T;
+		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datastores', 'TRUE')) AS f, 
+		    XMLTABLE('/holder/dataStores' PASSING JSONTOXML('holder', f.result) 
+		        COLUMNS id string PATH 'id/text()', name string PATH 'name/text()')as T;
 		    
 		    CREATE  VIEW DatasourcesView (id varchar(5), name varchar(128), datastoreid varchar(5))
-		    AS
-		    SELECT
-		        T.id, T.name, T.datastoreid
+		    AS SELECT T.id, T.name, T.datastoreid
 	        FROM
-		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datasources', 'TRUE')) AS f, XMLTABLE('/holder/dataSources' PASSING JSONTOXML('holder', f.result) COLUMNS id string PATH 'id/text()', name string PATH 'name/text()', datastoreid string PATH 'dataStore/text()')as T;
-		    
-		    CREATE  VIEW DatasourcesMetadata (id varchar(5), name varchar(128), type varchar(128))
-		    AS
-		    SELECT
-		        DatasourcesView.id, DatasourcesView.name, DatastoresView.Type
-	        FROM DatasourcesView, DatastoresView
-		    where DatasourcesView.datastoreid = DatastoresView.id;
+		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datasources', 'TRUE')) AS f, 
+		    XMLTABLE('/holder/dataSources' PASSING JSONTOXML('holder', f.result) 
+		        COLUMNS id string PATH 'id/text()', name string PATH 'name/text()', datastoreid string PATH 'dataStore/text()')as T;
+
         ]]>
         </metadata>
     </model>

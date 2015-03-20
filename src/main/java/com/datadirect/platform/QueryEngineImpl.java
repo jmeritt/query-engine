@@ -10,9 +10,6 @@ import org.teiid.transport.WireProtocol;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Created by jmeritt on 3/17/15.
@@ -45,25 +42,19 @@ public abstract class QueryEngineImpl implements QueryEngine {
         config.setUseDisk(true);
         m_server.start(config);
 
-        initModels();
+        init();
 
     }
 
-    @Override
-    public Connection getConnection(String db, Properties props) throws SQLException {
-        return m_server.getDriver().connect("jdbc:teiid:" + db, props);
+    public Connection getConnection(String vdbName, Properties props) throws SQLException {
+        return m_server.getDriver().connect("jdbc:teiid:" + vdbName, props);
     }
 
     private void initTeiidLogging() {
-        Logger logger = Logger.getLogger("org.teiid");
-        logger.setLevel(Level.FINEST);
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.FINEST);
-        logger.addHandler(handler);
         LogManager.setLogListener(new SLFLogger());
     }
 
-    protected abstract void initModels() throws SQLException;
+    protected abstract void init() throws SQLException;
 
     protected void initTransports(EmbeddedConfiguration config) {
         if (m_remoteAccess) {
@@ -79,6 +70,13 @@ public abstract class QueryEngineImpl implements QueryEngine {
     public void stop() {
         m_server.stop();
     }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return getConnection(getVDBName(), null);
+    }
+
+    protected abstract String getVDBName();
 
 
 }

@@ -40,6 +40,7 @@ public abstract class QueryEngineImpl implements QueryEngine {
         EmbeddedConfiguration config = new EmbeddedConfiguration();
         initTransports(config);
         config.setUseDisk(true);
+        config.setTransactionManager(com.arjuna.ats.jta.TransactionManager.transactionManager());
         m_server.start(config);
 
         init();

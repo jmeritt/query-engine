@@ -49,4 +49,12 @@ public class DataSource
         result = 31 * result + type.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "DataSource{" +
+                "name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                '}';
+    }
 }

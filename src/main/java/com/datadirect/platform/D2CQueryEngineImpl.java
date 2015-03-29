@@ -7,8 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.teiid.resource.adapter.ws.WSManagedConnectionFactory;
 import org.teiid.translator.ExecutionFactory;
 import org.teiid.translator.TranslatorException;
-import org.teiid.translator.jdbc.JDBCExecutionFactory;
 import org.teiid.translator.jdbc.oracle.OracleExecutionFactory;
+import org.teiid.translator.jdbc.postgresql.PostgreSQLExecutionFactory;
 import org.teiid.translator.jdbc.sqlserver.SQLServerExecutionFactory;
 import org.teiid.translator.ws.WSExecutionFactory;
 import org.w3c.dom.Document;
@@ -112,7 +112,7 @@ public class D2CQueryEngineImpl extends QueryEngineImpl {
                 m_server.addTranslator(TRANSLATOR_ORACLE, factory);
                 return TRANSLATOR_ORACLE;
             default:
-                factory = new JDBCExecutionFactory();
+                factory = new PostgreSQLExecutionFactory();
                 factory.start();
                 m_server.addTranslator(TRANSLATOR_JDBC, factory);
                 return TRANSLATOR_JDBC;

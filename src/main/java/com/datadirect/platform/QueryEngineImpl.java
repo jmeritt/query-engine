@@ -62,7 +62,7 @@ public abstract class QueryEngineImpl implements QueryEngine {
             SocketConfiguration s = new SocketConfiguration();
             s.setBindAddress(m_hostname);
             s.setPortNumber(m_port);
-            s.setProtocol(WireProtocol.pg);
+            s.setProtocol(WireProtocol.teiid);
             config.addTransport(s);
         }
     }

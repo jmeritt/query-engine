@@ -64,6 +64,11 @@ public abstract class QueryEngineImpl implements QueryEngine {
             s.setPortNumber(m_port);
             s.setProtocol(WireProtocol.teiid);
             config.addTransport(s);
+            s = new SocketConfiguration();
+            s.setBindAddress(m_hostname);
+            s.setPortNumber(m_port + 1);
+            s.setProtocol(WireProtocol.pg);
+            config.addTransport(s);
         }
     }
 

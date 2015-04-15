@@ -9,6 +9,10 @@ public class DataSource
     private String name;
     private String type;
 
+    public DataSource() {
+        this("UNKNOWN", "UNKNOWN");
+    }
+
     public DataSource(String name, String type) {
         this.name = name;
         this.type = type;

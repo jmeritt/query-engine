@@ -26,6 +26,12 @@
         </dependency>
         <dependency>
             <groupId>org.jboss.teiid</groupId>
+            <artifactId>teiid-odata</artifactId>
+            <version>${version.teiid}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.teiid</groupId>
             <artifactId>teiid-admin</artifactId>
             <version>${version.teiid}</version>
         </dependency>

@@ -13,7 +13,6 @@ public interface QueryEngine {
     void stop() throws SQLException;
 
     List<DataSource> allDataSources() throws SQLException;
-
     void virtualize(List<DataSource> datasources) throws SQLException;
 
     Connection getConnection() throws SQLException;

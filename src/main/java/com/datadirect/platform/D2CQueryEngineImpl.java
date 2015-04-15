@@ -159,7 +159,11 @@ public class D2CQueryEngineImpl extends QueryEngineImpl {
                 model.setAttribute("name", name);
                 Element property = vdbDoc.createElement("property");
                 property.setAttribute("name", "importer.useFullSchemaName");
-                property.setAttribute("value", "true");
+                property.setAttribute("value", "false");
+                model.appendChild(property);
+                property = vdbDoc.createElement("property");
+                property.setAttribute("name", "importer.importKeys");
+                property.setAttribute("value", "false");
                 model.appendChild(property);
 
 

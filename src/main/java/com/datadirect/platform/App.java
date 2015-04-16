@@ -15,7 +15,7 @@ public class App {
         for (DataSource ds : dbs) {
             switch (ds.getType()) {
                 case "Salesforce":
-                case "Eloqua":
+                case "Dynamics":
                     virts.add(ds);
                 default:
                     continue;

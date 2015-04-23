@@ -34,7 +34,7 @@ class D2CQueryEngineImpl extends QueryEngineImpl {
     private List<DataSource> m_virtualizedDatasources;
     private List<DataSource> m_defaultDatasources;
 
-    public D2CQueryEngineImpl(String localhost, int port, String username, String password) {
+    D2CQueryEngineImpl(String localhost, int port, String username, String password) {
         super(localhost, port);
         m_d2cUser = username;
         m_d2cPassword = password;

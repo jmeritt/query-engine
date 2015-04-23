@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * Created by jmeritt on 3/17/15.
  */
-class D2CQueryEngineImpl extends QueryEngineImpl {
+class D2CQueryEngineImpl extends QueryEngine {
 
     static final String D2C_VDB = "D2CVDB";
     private static final Logger LOG = LoggerFactory.getLogger(D2CQueryEngineImpl.class);
@@ -83,7 +83,7 @@ class D2CQueryEngineImpl extends QueryEngineImpl {
     private List<DataSource> initialDatasources() {
 
         ArrayList l = new ArrayList();
-        HashMap<String, String> props = new HashMap();
+        HashMap<String, String> props = new HashMap<String, String>();
         String name = "D2CMetadata";
         props.put(DataSource.USERNAME, m_d2cUser);
         props.put(DataSource.PASSWORD, m_d2cPassword);

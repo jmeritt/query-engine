@@ -28,7 +28,6 @@
             <groupId>org.jboss.teiid</groupId>
             <artifactId>teiid-odata</artifactId>
             <version>${version.teiid}</version>
-            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.jboss.teiid</groupId>
@@ -93,6 +92,11 @@
                     <groupId>org.jboss.spec.javax.servlet</groupId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.teiid.connectors</groupId>
+            <artifactId>translator-odata</artifactId>
+            <version>8.9.1</version>
         </dependency>
 
     </dependencies>

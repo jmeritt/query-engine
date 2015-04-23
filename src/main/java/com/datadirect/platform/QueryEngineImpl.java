@@ -14,23 +14,18 @@ import java.util.Properties;
 /**
  * Created by jmeritt on 3/17/15.
  */
-public abstract class QueryEngineImpl implements QueryEngine {
+abstract class QueryEngineImpl extends QueryEngine {
 
 
     protected EmbeddedServer m_server;
-    protected boolean m_remoteAccess;
     protected String m_hostname;
     private int m_port;
 
     protected QueryEngineImpl(String hostname, int port) {
-        m_remoteAccess = true;
         m_hostname = hostname;
         m_port = port;
     }
 
-    protected QueryEngineImpl() {
-        m_remoteAccess = false;
-    }
 
     public void start() throws SQLException {
 
@@ -47,9 +42,6 @@ public abstract class QueryEngineImpl implements QueryEngine {
 
     }
 
-    public Connection getConnection(String vdbName, Properties props) throws SQLException {
-        return m_server.getDriver().connect("jdbc:teiid:" + vdbName, props);
-    }
 
     private void initTeiidLogging() {
         LogManager.setLogListener(new SLFLogger());
@@ -58,18 +50,16 @@ public abstract class QueryEngineImpl implements QueryEngine {
     protected abstract void init() throws SQLException;
 
     protected void initTransports(EmbeddedConfiguration config) {
-        if (m_remoteAccess) {
-            SocketConfiguration s = new SocketConfiguration();
-            s.setBindAddress(m_hostname);
-            s.setPortNumber(m_port);
-            s.setProtocol(WireProtocol.teiid);
-            config.addTransport(s);
-            s = new SocketConfiguration();
-            s.setBindAddress(m_hostname);
-            s.setPortNumber(m_port + 1);
-            s.setProtocol(WireProtocol.pg);
-            config.addTransport(s);
-        }
+        SocketConfiguration s = new SocketConfiguration();
+        s.setBindAddress(m_hostname);
+        s.setPortNumber(m_port);
+        s.setProtocol(WireProtocol.teiid);
+        config.addTransport(s);
+        s = new SocketConfiguration();
+        s.setBindAddress(m_hostname);
+        s.setPortNumber(m_port + 1);
+        s.setProtocol(WireProtocol.pg);
+        config.addTransport(s);
     }
 
     @Override
@@ -83,6 +73,11 @@ public abstract class QueryEngineImpl implements QueryEngine {
     }
 
     protected abstract String getVDBName();
+
+    public Connection getConnection(String vdbName, Properties props) throws SQLException {
+        return m_server.getDriver().connect("jdbc:teiid:" + vdbName, props);
+    }
+
 
 
 }

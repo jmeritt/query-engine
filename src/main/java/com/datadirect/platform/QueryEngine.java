@@ -7,15 +7,21 @@ import java.util.List;
 /**
  * Created by jmeritt on 3/17/15.
  */
-public interface QueryEngine {
+public abstract class QueryEngine {
 
-    void start() throws SQLException;
-    void stop() throws SQLException;
+    static QueryEngine create(String localhost, int basePort, String username, String password) {
+        return new D2CQueryEngineImpl(localhost, basePort, username, password);
+    }
 
-    List<DataSource> allDataSources() throws SQLException;
-    void virtualize(List<DataSource> datasources) throws SQLException;
+    abstract void start() throws SQLException;
 
-    Connection getConnection() throws SQLException;
+    abstract void stop() throws SQLException;
+
+    abstract List<DataSource> allDataSources() throws SQLException;
+
+    abstract void virtualize(List<DataSource> datasources) throws SQLException;
+
+    abstract Connection getConnection() throws SQLException;
     
     
     

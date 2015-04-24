@@ -1,5 +1,8 @@
 package com.datadirect.platform;
 
+import com.arjuna.ats.arjuna.common.ObjectStoreEnvironmentBean;
+import com.arjuna.ats.arjuna.common.arjPropertyManager;
+import com.arjuna.common.internal.util.propertyservice.BeanPopulator;
 import com.datadirect.util.SLFLogger;
 import org.teiid.logging.LogManager;
 import org.teiid.runtime.EmbeddedConfiguration;
@@ -7,6 +10,10 @@ import org.teiid.runtime.EmbeddedServer;
 import org.teiid.transport.SocketConfiguration;
 import org.teiid.transport.WireProtocol;
 
+import javax.transaction.TransactionManager;
+import java.io.File;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
@@ -30,6 +37,50 @@ public abstract class QueryEngine {
         return new D2CQueryEngineImpl(localhost, basePort, username, password);
     }
 
+    private static TransactionManager getTransactionManager() {
+
+        arjPropertyManager.getCoreEnvironmentBean().setNodeIdentifier("1");
+        arjPropertyManager.getCoreEnvironmentBean().setSocketProcessIdPort(0);
+        arjPropertyManager.getCoreEnvironmentBean().setSocketProcessIdMaxPorts(10);
+
+        arjPropertyManager.getCoordinatorEnvironmentBean().setEnableStatistics(false);
+        arjPropertyManager.getCoordinatorEnvironmentBean().setDefaultTimeout(300);
+        arjPropertyManager.getCoordinatorEnvironmentBean().setTransactionStatusManagerEnable(false);
+        arjPropertyManager.getCoordinatorEnvironmentBean().setTxReaperTimeout(120000);
+
+        String storeDir = getStoreDir();
+
+        arjPropertyManager.getObjectStoreEnvironmentBean().setObjectStoreDir(storeDir);
+        BeanPopulator.getNamedInstance(ObjectStoreEnvironmentBean.class, "communicationStore").setObjectStoreDir(storeDir); //$NON-NLS-1$
+
+        return com.arjuna.ats.jta.TransactionManager.transactionManager();
+    }
+
+    private static String getStoreDir() {
+        String defDir = getSystemProperty("user.home") + File.separator + ".teiid/embedded/data"; //$NON-NLS-1$ //$NON-NLS-2$
+        return getSystemProperty("teiid.embedded.txStoreDir", defDir);
+    }
+
+    private static String getSystemProperty(final String name, final String value) {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+
+            @Override
+            public String run() {
+                return System.getProperty(name, value);
+            }
+        });
+    }
+
+    private static String getSystemProperty(final String name) {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+
+            @Override
+            public String run() {
+                return System.getProperty(name);
+            }
+        });
+    }
+
     public abstract List<DataSource> allDataSources() throws SQLException;
 
     public abstract void virtualize(List<DataSource> datasources) throws SQLException;
@@ -42,7 +93,8 @@ public abstract class QueryEngine {
         EmbeddedConfiguration config = new EmbeddedConfiguration();
         initTransports(config);
         config.setUseDisk(true);
-        config.setTransactionManager(com.arjuna.ats.jta.TransactionManager.transactionManager());
+        config.setTransactionManager(getTransactionManager());
+        //config.setSecurityHelper(new SecurityHelper());
         m_server.start(config);
 
         init();

@@ -1,12 +1,10 @@
 package com.datadirect.platform;
 
-import com.datadirect.util.XMLUtil;
 import com.ddtek.jdbcx.ddcloud.DDCloudDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.resource.adapter.ws.WSManagedConnectionFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.resource.ResourceException;
 import javax.xml.parsers.DocumentBuilder;
@@ -52,9 +50,18 @@ class D2CQueryEngineImpl extends QueryEngine {
             case Translators.ODATA:
             case Translators.SOAP:
                 WSManagedConnectionFactory mcf = new WSManagedConnectionFactory();
-                mcf.setAuthUserName(ds.getUsername());
-                mcf.setAuthPassword(ds.getPassword());
-                mcf.setSecurityType(WSManagedConnectionFactory.SecurityType.HTTPBasic.name());
+                switch (ds.getSecurityType()) {
+                    case "BASIC":
+                        mcf.setAuthUserName(ds.getUsername());
+                        mcf.setAuthPassword(ds.getPassword());
+                        mcf.setSecurityType(WSManagedConnectionFactory.SecurityType.HTTPBasic.name());
+                        break;
+                    case "NONE":
+                        break;
+                    case "OAUTH":
+                        mcf.setSecurityType(WSManagedConnectionFactory.SecurityType.OAuth.name());
+                        break;
+                }
                 mcf.setEndPoint(ds.getEndpoint());
                 return mcf.createConnectionFactory();
             case Translators.ORACLE:
@@ -65,6 +72,7 @@ class D2CQueryEngineImpl extends QueryEngine {
                 d2cDs.setPassword(ds.getPassword());
                 d2cDs.setDatabaseName(ds.getName());
                 return d2cDs;
+
         }
     }
 
@@ -87,6 +95,7 @@ class D2CQueryEngineImpl extends QueryEngine {
         String name = "D2CMetadata";
         props.put(DataSource.USERNAME, m_d2cUser);
         props.put(DataSource.PASSWORD, m_d2cPassword);
+        props.put(DataSource.SECURITY_TYPE, "BASIC");
         props.put(DataSource.VIEWS_DDL, "CREATE  VIEW DatastoresView (id varchar(5), type varchar(128))\n" +
                 "            AS SELECT T.id, T.name\n" +
                 "\t        FROM\n" +
@@ -143,18 +152,14 @@ class D2CQueryEngineImpl extends QueryEngine {
 
     private void virtualize() throws SQLException {
         try {
-            Document vdbDoc = m_builder.newDocument();
-            Element vdb = vdbDoc.createElement("vdb");
-            vdb.setAttribute("name", D2C_VDB);
-            vdb.setAttribute("version", String.format("%d", ++m_version));
-            vdbDoc.appendChild(vdb);
-
-            for (DataSource ds : m_virtualizedDatasources) {
-                for (Element e : ds.buildModels(m_server, vdbDoc, createConnectionFactory(ds)))
-                    vdb.appendChild(e);
-            }
             m_server.undeployVDB(D2C_VDB);
-            m_server.deployVDB(XMLUtil.docToInputStream(vdbDoc));
+
+            List<ModelMetaData> metadata = new ArrayList<>();
+            for (DataSource ds : m_virtualizedDatasources) {
+                for (ModelMetaData md : ds.buildModelsAsMetadata(m_server, createConnectionFactory(ds)))
+                    metadata.add(md);
+            }
+            m_server.deployVDB(D2C_VDB, metadata.toArray(new ModelMetaData[0]));
         } catch (Exception e) {
             throw new SQLException(e);
         }

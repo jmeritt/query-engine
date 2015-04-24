@@ -12,7 +12,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.teiid>8.10.0.Final</version.teiid>
+        <version.teiid>8.11.0.Beta2</version.teiid>
         <version.logback>1.1.2</version.logback>
     </properties>
 
@@ -30,6 +30,11 @@
         <dependency>
             <groupId>org.jboss.teiid</groupId>
             <artifactId>teiid-admin</artifactId>
+            <version>${version.teiid}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.teiid</groupId>
+            <artifactId>teiid-jboss-security</artifactId>
             <version>${version.teiid}</version>
         </dependency>
         <dependency>
@@ -114,6 +119,11 @@
         <repository>
             <id>jboss-releases</id>
             <url>https://repository.jboss.org/nexus/content/repositories/releases/</url>
+        </repository>
+
+        <repository>
+            <id>jboss-preview</id>
+            <url>https://maven.repository.redhat.com/techpreview/all/</url>
         </repository>
 
     </repositories>

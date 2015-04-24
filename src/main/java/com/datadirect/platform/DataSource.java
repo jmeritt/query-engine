@@ -1,11 +1,9 @@
 package com.datadirect.platform;
 
+import org.teiid.adminapi.Model;
+import org.teiid.adminapi.impl.ModelMetaData;
 import org.teiid.runtime.EmbeddedServer;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import javax.resource.ResourceException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,6 +15,7 @@ public class DataSource {
     public static final String PASSWORD = "PASSWORD";
     public static final String ENDPOINT = "ENDPOINT";
     public static final String VIEWS_DDL = "VIEWSDDL";
+    public static final String SECURITY_TYPE = "SECURITYTYPE";
     private String name;
     private String type;
     private Map<String, String> properties;
@@ -91,6 +90,14 @@ public class DataSource {
         return properties.get(name);
     }
 
+    public String getSecurityType() {
+        return properties.containsKey(SECURITY_TYPE) ? properties.get(SECURITY_TYPE) : "NONE";
+    }
+
+    public void setSecurityType(String type) {
+        properties.put(SECURITY_TYPE, type);
+    }
+
 
     @Override
     public boolean equals(Object o) {
@@ -100,9 +107,8 @@ public class DataSource {
         DataSource that = (DataSource) o;
 
         if (!name.equals(that.name)) return false;
-        if (!type.equals(that.type)) return false;
+        return type.equals(that.type);
 
-        return true;
     }
 
     @Override
@@ -120,38 +126,38 @@ public class DataSource {
                 '}';
     }
 
-    protected Element[] buildModels(EmbeddedServer server, Document doc, Object factory) throws ResourceException {
+    protected ModelMetaData[] buildModelsAsMetadata(EmbeddedServer server, Object factory) {
         String boundName = getBoundName();
         server.addConnectionFactory(boundName, factory);
 
-        Element sourceModel = doc.createElement("model");
-        sourceModel.setAttribute("name", getName());
+        //physical model
+        ModelMetaData sourceModel = new ModelMetaData();
+        sourceModel.setName(getName());
         for (String key : properties.keySet()) {
             if (!isKnownKey(key))
-                sourceModel.appendChild(createPropertyElement(doc, key, properties.get(key)));
+                sourceModel.addProperty(key, properties.get(key));
         }
-        sourceModel.appendChild(createSource(doc, boundName));
+
+        sourceModel.addSourceMapping("source-" + getName(), Translators.translatorForDSType(getType()), boundName);
 
         String viewsDefinition = properties.get(VIEWS_DDL);
         if (viewsDefinition == null)
-            return new Element[]{sourceModel};
-        Element viewModel = doc.createElement("model");
-        viewModel.setAttribute("name", getName() + "View");
-        viewModel.setAttribute("type", "VIRTUAL");
-        Element metadata = doc.createElement("metadata");
-        metadata.setAttribute("type", "DDL");
-        CDATASection ddl = doc.createCDATASection(viewsDefinition);
-        metadata.appendChild(ddl);
-        viewModel.appendChild(metadata);
+            return new ModelMetaData[]{sourceModel};
 
-        return new Element[]{sourceModel, viewModel};
-
+        //virtual model
+        ModelMetaData viewModel = new ModelMetaData();
+        viewModel.setName(getName() + "View");
+        viewModel.setModelType(Model.Type.VIRTUAL);
+        viewModel.setSchemaSourceType("ddl");
+        viewModel.setSchemaText(viewsDefinition);
+        return new ModelMetaData[]{sourceModel, viewModel};
     }
 
     private boolean isKnownKey(String key) {
         return key.equals(USERNAME) ||
                 key.equals(PASSWORD) ||
                 key.equals(ENDPOINT) ||
+                key.equals(SECURITY_TYPE) ||
                 key.equals(VIEWS_DDL);
     }
 
@@ -159,18 +165,5 @@ public class DataSource {
         return String.format("java:/%s", getName());
     }
 
-    protected Element createSource(Document doc, String jndiName) {
-        Element source = doc.createElement("source");
-        source.setAttribute("name", "source-" + getName());
-        source.setAttribute("translator-name", Translators.translatorForDSType(getType()));
-        source.setAttribute("connection-jndi-name", jndiName);
-        return source;
-    }
 
-    protected Element createPropertyElement(Document doc, String name, String value) {
-        Element property = doc.createElement("property");
-        property.setAttribute("name", name);
-        property.setAttribute("value", value);
-        return property;
-    }
 }

@@ -20,10 +20,7 @@
         <metadata type="DDL"><![CDATA[
             
             CREATE  VIEW DatastoresView (id varchar(5), type varchar(128))
-            OPTIONS (MATERIALIZED 'TRUE', UPDATABLE 'FALSE',
-               "teiid_rel:MATVIEW_TTL" 1200000,
-               "teiid_rel:MATVIEW_SHARE_SCOPE" 'NONE',
-               "teiid_rel:MATVIEW_ONERROR_ACTION" 'THROW_EXCEPTION')
+
             AS SELECT T.id, T.name
 	        FROM
 		    (EXEC MetadataSource.invokeHttp('GET', null, 'https://service.datadirectcloud.com/api/mgmt/datastores', 'TRUE')) AS f, 

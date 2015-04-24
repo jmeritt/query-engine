@@ -21,6 +21,11 @@ public class App {
                     continue;
             }
         }
+        DataSource odata = new DataSource();
+        odata.setName("Northwind");
+        odata.setType(Translators.ODATA);
+        odata.setEndpoint("http://services.odata.org/V2/Northwind/Northwind.svc/");
+        virts.add(odata);
         engine.virtualize(virts);
         System.in.read();
         engine.stop();

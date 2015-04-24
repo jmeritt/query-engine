@@ -30,9 +30,9 @@ public abstract class QueryEngine {
         return new D2CQueryEngineImpl(localhost, basePort, username, password);
     }
 
-    abstract List<DataSource> allDataSources() throws SQLException;
+    public abstract List<DataSource> allDataSources() throws SQLException;
 
-    abstract void virtualize(List<DataSource> datasources) throws SQLException;
+    public abstract void virtualize(List<DataSource> datasources) throws SQLException;
 
     public void start() throws SQLException {
 
